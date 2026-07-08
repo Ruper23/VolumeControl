@@ -1,0 +1,36 @@
+# Build artifacts
+dist/
+build/
+*.spec
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+.tox/
+.venv/
+venv/
+env/
+
+# OS
+Thumbs.db
+Desktop.ini
+.DS_Store
+ehthumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Config (generated at runtime)
+%APPDATA%\VolumeControl\
