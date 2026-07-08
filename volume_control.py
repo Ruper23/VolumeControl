@@ -24,6 +24,8 @@ CONFIG_DIR = os.path.join(os.getenv("APPDATA"), APP_NAME)
 CONFIG_PATH = os.path.join(CONFIG_DIR, "config.json")
 # ICON_PATH теперь будет в папке конфига, чтобы быть доступным для EXE
 ICON_PATH = os.path.join(CONFIG_DIR, "icon.ico")
+# Также проверяем иконку рядом с exe/скриптом для упаковки в EXE
+BUNDLED_ICON_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "icon.ico")
 STEP_DEFAULT = 3
 AUTOSTART_DEFAULT = False
 
@@ -47,24 +49,69 @@ def save_config(cfg):
         json.dump(cfg, f, indent=2)
 
 def create_default_icon():
-    """Генерируем простую иконку динамика и сохраняем как ICO."""
-    size = 64
+    """Генерируем иконку динамика и сохраняем как ICO."""
+    size = 256
     img = Image.new("RGBA", (size, size), (0, 0, 0, 0))
     draw = ImageDraw.Draw(img)
-    # основной корпус
-    draw.rectangle((size*0.3, size*0.2, size*0.7, size*0.8), fill=(30, 30, 30, 255))
-    # outercircle
-    draw.arc((size*0.15, size*0.15, size*0.85, size*0.85), start=0, end=360, fill=(200,200,200,255), width=4)
-    # sound waves
-    for r in (size*0.35, size*0.45, size*0.55):
-        draw.arc((size*0.5 - r, size*0.5 - r, size*0.5 + r, size*0.5 + r),
-                 start=-45, end=45, fill=(200,200,200,255), width=3)
-    img.save(ICON_PATH, format="ICO")
+
+    cx, cy = size // 2, size // 2
+
+    # фон — круг с градиентом (тёмно-синий)
+    for r in range(cx, 0, -1):
+        ratio = r / cx
+        c = int(30 + 15 * (1 - ratio))
+        draw.ellipse((cx - r, cy - r, cx + r, cy + r), fill=(c, c, c + 40, 255))
+
+    # корпус динамика (трапеция)
+    body_pts = [
+        (int(cx - size * 0.12), int(cy - size * 0.18)),
+        (int(cx + size * 0.02), int(cy - size * 0.14)),
+        (int(cx + size * 0.02), int(cy + size * 0.14)),
+        (int(cx - size * 0.12), int(cy + size * 0.18)),
+    ]
+    draw.polygon(body_pts, fill=(80, 80, 90, 255), outline=(120, 120, 130, 255))
+
+    # конус динамика
+    cone_pts = [
+        (int(cx + size * 0.02), int(cy - size * 0.10)),
+        (int(cx + size * 0.18), int(cy - size * 0.22)),
+        (int(cx + size * 0.18), int(cy + size * 0.22)),
+        (int(cx + size * 0.02), int(cy + size * 0.10)),
+    ]
+    draw.polygon(cone_pts, fill=(60, 60, 70, 255), outline=(100, 100, 110, 255))
+
+    # звуковые волны — яркие голубые
+    wave_color = (0, 200, 255, 255)
+    for i, (r, w) in enumerate([(0.28, 4), (0.36, 3), (0.44, 2)]):
+        radius = int(size * r)
+        alpha = 255 - i * 40
+        draw.arc(
+            (cx + int(size * 0.10) - radius, cy - radius,
+             cx + int(size * 0.10) + radius, cy + radius),
+            start=-50, end=50,
+            fill=(0, 200, 255, alpha), width=w
+        )
+
+    img.save(ICON_PATH, format="ICO", sizes=[(256, 256), (128, 128), (64, 64), (48, 48), (32, 32), (16, 16)])
     return Image.open(ICON_PATH)
 
 def get_icon_image():
+    # При запуске из PyInstaller bundle (sys._MEIPASS) иконка лежит рядом с exe
+    if getattr(sys, 'frozen', False):
+        # В скомпилированном EXE иконка распакована в _MEIPASS
+        base_path = sys._MEIPASS
+        bundled_icon = os.path.join(base_path, "icon.ico")
+        if os.path.isfile(bundled_icon):
+            return Image.open(bundled_icon)
+    
+    # При обычном запуске — ищем рядом со скриптом
+    if os.path.isfile(BUNDLED_ICON_PATH):
+        return Image.open(BUNDLED_ICON_PATH)
+    
+    # Fallback — иконка в конфиге (сгенерированная при первом запуске)
     if os.path.isfile(ICON_PATH):
         return Image.open(ICON_PATH)
+    
     return create_default_icon()
 
 # -------------------- Регистр автозапуска --------------------

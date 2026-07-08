@@ -7,7 +7,7 @@
 
 Утилита для управления громкостью Windows: прокрутка колесом мыши над панелью задач, системный трей с настройками, автозапуск.
 
-## ✨ Возможности
+## Возможности
 
 | Действие | Результат |
 |----------|-----------|
@@ -17,71 +17,64 @@
 | `Правый клик` по иконке в трее | Меню: **Настройки** / **Выход** |
 
 **Настройки (в меню трея):**
-- 🎚 **Шаг громкости** — 1–10%
-- 🔄 **Автозапуск с Windows** — включить/выключить
-- 💾 Настройки сохраняются в `%APPDATA%\VolumeControl\config.json`
+- **Шаг громкости** — 1-10%
+- **Автозапуск с Windows** — включить/выключить
+- Настройки сохраняются в `%APPDATA%\VolumeControl\config.json`
 
-## 📥 Установка
+## Установка
 
-### Вариант 1: Готовый EXE (рекомендуется)
-1. Скачайте `VolumeControl.exe` из [Releases](https://github.com/Ruper23/VolumeControl/releases/latest)
-2. Запустите — появится иконка в трее (нижний правый угол)
-3. (Опционально) Добавьте в автозагрузку через настройки в меню трея
+### Скачать готовый EXE (рекомендуется)
 
-### Вариант 2: Сборка из исходников
+1. Перейдите в [Releases](https://github.com/Ruper23/VolumeControl/releases/latest)
+2. Скачайте `VolumeControl.exe`
+3. Запустите — программа готова к работе
+
+> Программа не требует установки Python или каких-либо зависимостей. Работает на любом ПК с Windows 10/11.
+
+### Сборка из исходников
+
 ```cmd
 git clone https://github.com/Ruper23/VolumeControl.git
 cd VolumeControl
 pip install -r requirements.txt
-pip install pyinstaller
-pyinstaller --onefile --noconsole --name "VolumeControl" ^
-  --hidden-import=pystray ^
-  --hidden-import=PIL ^
-  --hidden-import=PIL.Image ^
-  --hidden-import=PIL.ImageDraw ^
-  --hidden-import=pycaw ^
-  --hidden-import=comtypes ^
-  --hidden-import=comtypes.client ^
-  --hidden-import=pynput ^
-  --hidden-import=pynput.mouse ^
-  --hidden-import=winreg ^
+pip install pyinstaller pystray pywin32 pillow
+pyinstaller --onefile --noconsole --name "VolumeControl" --icon=icon.ico ^
+  --collect-all pystray --collect-all PIL ^
+  --hidden-import=pycaw --hidden-import=pycaw.pycaw ^
+  --hidden-import=comtypes --hidden-import=comtypes.client ^
+  --hidden-import=pynput --hidden-import=pynput.mouse --hidden-import=pynput.keyboard ^
+  --hidden-import=pystray._win32 --hidden-import=pystray._util ^
+  --hidden-import=win32gui --hidden-import=win32api --hidden-import=win32con ^
+  --hidden-import=win32gui_struct --hidden-import=winreg --hidden-import=_tkinter ^
   volume_control.py
 ```
+
 Готовый `VolumeControl.exe` будет в папке `dist/`.
 
-## ⚙️ Как это работает
+## Как это работает
 
 - **pycaw** (Windows Core Audio API) — управление громкостью системы
 - **pynput** — глобальный хук мыши для отслеживания скролла над таскбаром
-- **pystray** + **Pillow** — иконка в системном трее (генерация программная, без внешних файлов)
+- **pystray** + **Pillow** — иконка в системном трее
 - **tkinter** — оверлей громкости и окно настроек
-- **winreg** — запись/удаление автозапуска в `HKCU\Software\Microsoft\Windows\CurrentVersion\Run`
+- **winreg** — запись/удаление автозапуска
 
-## 📁 Структура проекта
+## Структура проекта
 
 ```
 VolumeControl/
-├── volume_control.py   # Основной скрипт
-├── requirements.txt    # Зависимости Python
-├── build.bat           # Скрипт сборки для Windows
-├── LICENSE             # MIT License
+├── volume_control.py       # Основной скрипт
+├── requirements.txt        # Зависимости Python
+├── build.bat               # Скрипт сборки (установка в Program Files + ярлык)
+├── installer.iss           # Inno Setup скрипт для создания установщика
+├── LICENSE                 # MIT License
 ├── .gitignore
 └── .github/
     └── workflows/
-        └── build.yml   # GitHub Actions: автосборка EXE при теге
+        └── build.yml       # GitHub Actions: автосборка при теге
 ```
 
-## 🛠 Разработка
-
-```bash
-# Запуск в режиме разработки (с консолью)
-python volume_control.py
-
-# Проверка синтаксиса
-python -m py_compile volume_control.py
-```
-
-## 📄 Лицензия
+## Лицензия
 
 MIT License — см. [LICENSE](LICENSE).
 

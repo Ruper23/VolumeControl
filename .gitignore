@@ -2,6 +2,12 @@
 dist/
 build/
 *.spec
+installer_output/
+
+# Generated files
+icon.ico
+icon_preview.png
+create_icon.py
 
 # Python
 __pycache__/
@@ -31,6 +37,3 @@ ehthumbs.db
 *.swp
 *.swo
 *~
-
-# Config (generated at runtime)
-%APPDATA%\VolumeControl\
