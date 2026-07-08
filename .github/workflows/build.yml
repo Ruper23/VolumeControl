@@ -22,40 +22,18 @@ jobs:
           python-version: '3.11'
 
       - name: Install dependencies
+        shell: cmd
         run: |
           pip install -r requirements.txt
           pip install pyinstaller pystray pywin32 pillow
 
       - name: Generate icon
+        shell: cmd
         run: |
-          python -c "
-          import os
-          from PIL import Image, ImageDraw
-          os.makedirs('build_icon', exist_ok=True)
-          size = 256
-          img = Image.new('RGBA', (size, size), (0, 0, 0, 0))
-          draw = ImageDraw.Draw(img)
-          cx, cy = size // 2, size // 2
-          for r in range(cx, 0, -1):
-              ratio = r / cx
-              c = int(30 + 15 * (1 - ratio))
-              draw.ellipse((cx-r, cy-r, cx+r, cy+r), fill=(c, c, c+40, 255))
-          body = [(int(cx-size*0.12),int(cy-size*0.18)),(int(cx+size*0.02),int(cy-size*0.14)),
-                  (int(cx+size*0.02),int(cy+size*0.14)),(int(cx-size*0.12),int(cy+size*0.18))]
-          draw.polygon(body, fill=(80,80,90,255), outline=(120,120,130,255))
-          cone = [(int(cx+size*0.02),int(cy-size*0.10)),(int(cx+size*0.18),int(cy-size*0.22)),
-                  (int(cx+size*0.18),int(cy+size*0.22)),(int(cx+size*0.02),int(cy+size*0.10))]
-          draw.polygon(cone, fill=(60,60,70,255), outline=(100,100,110,255))
-          for i, (r, w) in enumerate([(0.28,4),(0.36,3),(0.44,2)]):
-              radius = int(size * r)
-              alpha = 255 - i * 40
-              draw.arc((cx+int(size*0.10)-radius, cy-radius, cx+int(size*0.10)+radius, cy+radius),
-                       start=-50, end=50, fill=(0,200,255,alpha), width=w)
-          img.save('icon.ico', format='ICO', sizes=[(256,256),(128,128),(64,64),(48,48),(32,32),(16,16)])
-          print('Icon generated')
-          "
+          python -c "import os; from PIL import Image, ImageDraw; size=256; img=Image.new('RGBA',(size,size),(0,0,0,0)); draw=ImageDraw.Draw(img); cx,cy=size//2,size//2; [draw.ellipse((cx-r,cy-r,cx+r,cy+r),fill=(int(30+15*(1-r/cx)),int(30+15*(1-r/cx)),int(30+15*(1-r/cx))+40,255)) for r in range(cx,0,-1)]; draw.polygon([(int(cx-size*0.12),int(cy-size*0.18)),(int(cx+size*0.02),int(cy-size*0.14)),(int(cx+size*0.02),int(cy+size*0.14)),(int(cx-size*0.12),int(cy+size*0.18))],fill=(80,80,90,255),outline=(120,120,130,255)); draw.polygon([(int(cx+size*0.02),int(cy-size*0.10)),(int(cx+size*0.18),int(cy-size*0.22)),(int(cx+size*0.18),int(cy+size*0.22)),(int(cx+size*0.02),int(cy+size*0.10))],fill=(60,60,70,255),outline=(100,100,110,255)); [(draw.arc((cx+int(size*0.10)-int(size*r),cy-int(size*r),cx+int(size*0.10)+int(size*r),cy+int(size*r)),start=-50,end=50,fill=(0,200,255,255-i*40),width=w)) for i,(r,w) in enumerate([(0.28,4),(0.36,3),(0.44,2)])]; img.save('icon.ico',format='ICO',sizes=[(256,256),(128,128),(64,64),(48,48),(32,32),(16,16)]); print('Icon generated')"
 
       - name: Build EXE with icon
+        shell: cmd
         run: |
           pyinstaller --onefile --noconsole --name "VolumeControl" --icon=icon.ico ^
             --collect-all pystray ^
