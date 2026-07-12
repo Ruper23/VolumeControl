@@ -311,7 +311,7 @@ class VolumeControl:
 
         sw = win.winfo_screenwidth()
         sh = win.winfo_screenheight()
-        w, h = 320, 160
+        w, h = 360, 220
         x = (sw - w) // 2
         y = (sh - h) // 2
         win.geometry(f"{w}x{h}+{x}+{y}")
@@ -322,13 +322,51 @@ class VolumeControl:
         tk.Label(frm, text="Шаг громкости (%):", anchor="w").grid(row=0, column=0, sticky="w", pady=4)
         step_var = tk.IntVar(value=self.step)
         step_slider = ttk.Scale(frm, from_=1, to=10, orient="horizontal",
-                                variable=step_var, length=200)
-        step_slider.grid(row=0, column=1, pady=4)
-        step_val_lbl = tk.Label(frm, textvariable=step_var, width=3)
-        step_val_lbl.grid(row=0, column=2, padx=(5,0))
+                                variable=step_var, length=180)
+        step_slider.grid(row=0, column=1, pady=4, padx=(0, 5))
+        step_val_lbl = tk.Label(frm, text=f"{self.step}%", width=4, anchor="w",
+                                font=("Segoe UI", 10, "bold"))
+        step_val_lbl.grid(row=0, column=2, padx=(0,0))
+
+        # Визуальный preview: как будет меняться громкость
+        preview_frame = tk.LabelFrame(frm, text="Пример изменения", padx=10, pady=6)
+        preview_frame.grid(row=1, column=0, columnspan=3, sticky="ew", pady=(4, 8))
+
+        preview_before_var = tk.StringVar(value="50%")
+        preview_after_var = tk.StringVar(value=f"53%")
+
+        preview_lbl = tk.Label(preview_frame,
+                               textvariable=preview_before_var,
+                               font=("Segoe UI", 11, "bold"),
+                               fg="#666666")
+        preview_lbl.pack(side="left")
+
+        preview_arrow = tk.Label(preview_frame, text="  →  ", font=("Segoe UI", 11),
+                                 fg="#999999")
+        preview_arrow.pack(side="left")
+
+        preview_after_lbl = tk.Label(preview_frame,
+                                     textvariable=preview_after_var,
+                                     font=("Segoe UI", 11, "bold"),
+                                     fg="#00d4ff")
+        preview_after_lbl.pack(side="left")
+
+        def update_preview(*args):
+            try:
+                s = step_var.get()
+                before = 50
+                after = min(100, before + s)
+                preview_before_var.set(f"{before}%")
+                preview_after_var.set(f"+{s}%  →  {after}%")
+                step_val_lbl.config(text=f"{s}%")
+            except Exception:
+                pass
+
+        step_var.trace_add("write", update_preview)
+        update_preview()
 
         autostart_var = tk.BooleanVar(value=self.autostart)
-        tk.Checkbutton(frm, text="Автозапуск с Windows", variable=autostart_var).grid(row=1, column=0, columnspan=3, pady=8, sticky="w")
+        tk.Checkbutton(frm, text="Автозапуск с Windows", variable=autostart_var).grid(row=2, column=0, columnspan=3, pady=8, sticky="w")
 
         def on_save():
             self.step = step_var.get()
@@ -351,7 +389,7 @@ class VolumeControl:
         win.protocol("WM_DELETE_WINDOW", on_close)
 
         btn_frm = tk.Frame(frm)
-        btn_frm.grid(row=2, column=0, columnspan=3, pady=(10,0))
+        btn_frm.grid(row=3, column=0, columnspan=3, pady=(10,0))
         ttk.Button(btn_frm, text="Сохранить", command=on_save).pack(side="left", padx=5)
         ttk.Button(btn_frm, text="Отмена", command=on_cancel).pack(side="left", padx=5)
 
